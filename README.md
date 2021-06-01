@@ -6,8 +6,7 @@ Feel free to fork both the main package and this proxy and deploy your own copy 
 
 ## What you'll need
 
-• A Twitter v2 API Bearer Token
-Get it <a href='https://developer.twitter.com/en/docs/twitter-api/getting-started/getting-access-to-the-twitter-api'>here</a>.
+• A Twitter v2 API Bearer Token. Get it <a href='https://developer.twitter.com/en/docs/twitter-api/getting-started/getting-access-to-the-twitter-api'>here</a>.
 
 ## Environment variables
 
