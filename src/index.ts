@@ -10,13 +10,13 @@ const SERVER_URL = process.env.SERVER_URL;
 
 const sendResponse = (res: Response, output: APIOutput | null) => {
   if (!output) {
-    res
+    return res
       .set('Access-Control-Allow-Origin', '*')
       .status(400)
       .json({ metadata: null });
   }
 
-  res
+  return res
     .set('Access-Control-Allow-Origin', '*')
     .status(200)
     .json({ metadata: output });
@@ -31,7 +31,7 @@ app.use(express.static('public'));
 app.get('/', async (req, res) => {
   const url = req.query.url as unknown as string;
   const metadata = await getMetadata(url);
-  res.set('Access-Control-Allow-Origin', '*').status(200).json({ metadata });
+  return res.set('Access-Control-Allow-Origin', '*').status(200).json({ metadata });
 });
 
 app.get('/v2', async (req, res) => {
@@ -91,9 +91,3 @@ app.get('/v2', async (req, res) => {
     return sendResponse(res, output);
   }
 });
-
-// app.get('/tw', async (req, res) => {
-//   const url = req.query.url as unknown as string;
-//   const result = await getTweetDetails(url);
-//   res.status(200).json({ ...result });
-// });
