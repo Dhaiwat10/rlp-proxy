@@ -1,6 +1,7 @@
 require('dotenv').config();
 import express, { Response } from 'express';
-import { getMetadata, getTweetDetails } from './lib';
+import { getMetadata } from './lib';
+import { checkForCache, createCache } from './lib/cache';
 import { APIOutput } from './types';
 
 const app = express();
@@ -31,7 +32,10 @@ app.use(express.static('public'));
 app.get('/', async (req, res) => {
   const url = req.query.url as unknown as string;
   const metadata = await getMetadata(url);
-  return res.set('Access-Control-Allow-Origin', '*').status(200).json({ metadata });
+  return res
+    .set('Access-Control-Allow-Origin', '*')
+    .status(200)
+    .json({ metadata });
 });
 
 app.get('/v2', async (req, res) => {
@@ -41,53 +45,53 @@ app.get('/v2', async (req, res) => {
 
   let output: APIOutput;
 
-  // Twitter
-  if (hostname.includes('twitter.com')) {
-    const result = await getTweetDetails(url);
-    if (!result) {
-      return sendResponse(res, null);
-    }
-    const title = `${result.author} on Twitter`;
-    const description = result.text;
-    const siteName = 'Twitter';
+  // optional - you'll need a supabase key if you want caching. highly recommended.
+  const cached = await checkForCache(url);
 
-    output = {
-      title,
-      description,
-      siteName,
-      image: SERVER_URL + '/tw-thumb.png',
-      hostname,
-    };
+  if (cached) {
+    return res
+      .set('Access-Control-Allow-Origin', '*')
+      .status(200)
+      .json({ metadata: cached });
+  }
 
-    return sendResponse(res, output);
-  } else {
-    const metadata = await getMetadata(url);
-    if (!metadata) {
-      return sendResponse(res, null);
-    }
-    const { images, og, meta } = metadata!;
+  const metadata = await getMetadata(url);
+  if (!metadata) {
+    return sendResponse(res, null);
+  }
+  const { images, og, meta } = metadata!;
 
-    let image = og.image
-      ? og.image
-      : images.length > 0
-      ? images[0].url
-      : `${SERVER_URL}/img-placeholder.jpg`;
-    const description = og.description
-      ? og.description
-      : meta.description
-      ? meta.description
-      : null;
-    const title = (og.title ? og.title : meta.title) || '';
-    const siteName = og.site_name || '';
+  let image = og.image
+    ? og.image
+    : images.length > 0
+    ? images[0].url
+    : `${SERVER_URL}/img-placeholder.jpg`;
+  const description = og.description
+    ? og.description
+    : meta.description
+    ? meta.description
+    : null;
+  const title = (og.title ? og.title : meta.title) || '';
+  const siteName = og.site_name || '';
 
-    output = {
-      title,
-      description,
-      image,
-      siteName,
-      hostname,
-    };
+  output = {
+    title,
+    description,
+    image,
+    siteName,
+    hostname,
+  };
 
-    return sendResponse(res, output);
+  sendResponse(res, output);
+
+  if (!cached && output) {
+    await createCache({
+      url,
+      title: output.title,
+      description: output.description,
+      image: output.image,
+      siteName: output.siteName,
+      hostname: output.hostname,
+    });
   }
 });
