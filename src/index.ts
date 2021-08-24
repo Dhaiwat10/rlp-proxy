@@ -13,7 +13,7 @@ const sendResponse = (res: Response, output: APIOutput | null) => {
   if (!output) {
     return res
       .set('Access-Control-Allow-Origin', '*')
-      .status(400)
+      .status(404)
       .json({ metadata: null });
   }
 
