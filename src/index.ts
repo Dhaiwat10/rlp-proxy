@@ -29,7 +29,6 @@ limiter({
   expire: 1000 * 60,
 });
 
-
 const sendResponse = (res: Response, output: APIOutput | null) => {
   if (!output) {
     return res
@@ -60,59 +59,87 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/v2', async (req, res) => {
-  const url = req.query.url as unknown as string;
+  try {
+    let url = req.query.url as unknown as string;
+    url = url.toLowerCase();
+    url = (url.indexOf('://') === -1) ? 'http://' + url : url;
 
-  const { hostname } = new URL(url);
+    const isUrlValid =
+      /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi.test(
+        url
+      );
 
-  let output: APIOutput;
+    console.log('hi');
 
-  // optional - you'll need a supabase key if you want caching. highly recommended.
-  const cached = await checkForCache(url);
+    console.log(isUrlValid);
 
-  if (cached) {
-    return res
-      .set('Access-Control-Allow-Origin', '*')
-      .status(200)
-      .json({ metadata: cached });
-  }
+    if (!url || !isUrlValid) {
+      return res
+        .set('Access-Control-Allow-Origin', '*')
+        .status(400)
+        .json({ error: 'Invalid URL' });
+    }
 
-  const metadata = await getMetadata(url);
-  if (!metadata) {
-    return sendResponse(res, null);
-  }
-  const { images, og, meta } = metadata!;
+    if (url && isUrlValid) {
+      const { hostname } = new URL(url);
 
-  let image = og.image
-    ? og.image
-    : images.length > 0
-    ? images[0].url
-    : `${SERVER_URL}/img-placeholder.jpg`;
-  const description = og.description
-    ? og.description
-    : meta.description
-    ? meta.description
-    : null;
-  const title = (og.title ? og.title : meta.title) || '';
-  const siteName = og.site_name || '';
+      let output: APIOutput;
 
-  output = {
-    title,
-    description,
-    image,
-    siteName,
-    hostname,
-  };
+      // optional - you'll need a supabase key if you want caching. highly recommended.
+      const cached = await checkForCache(url);
 
-  sendResponse(res, output);
+      if (cached) {
+        return res
+          .set('Access-Control-Allow-Origin', '*')
+          .status(200)
+          .json({ metadata: cached });
+      }
 
-  if (!cached && output) {
-    await createCache({
-      url,
-      title: output.title,
-      description: output.description,
-      image: output.image,
-      siteName: output.siteName,
-      hostname: output.hostname,
+      const metadata = await getMetadata(url);
+      if (!metadata) {
+        return sendResponse(res, null);
+      }
+      const { images, og, meta } = metadata!;
+
+      let image = og.image
+        ? og.image
+        : images.length > 0
+        ? images[0].url
+        : `${SERVER_URL}/img-placeholder.jpg`;
+      const description = og.description
+        ? og.description
+        : meta.description
+        ? meta.description
+        : null;
+      const title = (og.title ? og.title : meta.title) || '';
+      const siteName = og.site_name || '';
+
+      output = {
+        title,
+        description,
+        image,
+        siteName,
+        hostname,
+      };
+
+      sendResponse(res, output);
+
+      if (!cached && output) {
+        await createCache({
+          url,
+          title: output.title,
+          description: output.description,
+          image: output.image,
+          siteName: output.siteName,
+          hostname: output.hostname,
+        });
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    return res.set('Access-Control-Allow-Origin', '*').status(500).json({
+      error:
+        'Internal server error. Please open a Github issue or contact me on Twitter @dhaiwat10 if the issue persists.',
     });
   }
 });
