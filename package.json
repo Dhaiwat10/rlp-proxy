@@ -23,6 +23,8 @@
     "axios": "^0.21.1",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
-    "html-metadata-parser": "^1.0.3"
+    "express-limiter": "^1.6.1",
+    "html-metadata-parser": "^1.0.3",
+    "redis": "^3.1.2"
   }
 }

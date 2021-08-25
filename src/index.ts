@@ -9,6 +9,27 @@ const app = express();
 const port = Number(process.env.PORT || 8080);
 const SERVER_URL = process.env.SERVER_URL;
 
+if (process.env.REDISTOGO_URL) {
+  var rtg = require('url').parse(process.env.REDISTOGO_URL);
+  var redis = require('redis').createClient(rtg.port, rtg.hostname);
+
+  redis.auth(rtg.auth.split(':')[1]);
+} else {
+  var redis = require('redis').createClient();
+}
+
+const limiter = require('express-limiter')(app, redis);
+
+limiter({
+  path: '/v2',
+  method: 'get',
+  lookup: ['connection.remoteAddress'],
+  // 300 requests per minute
+  total: 300,
+  expire: 1000 * 60,
+});
+
+
 const sendResponse = (res: Response, output: APIOutput | null) => {
   if (!output) {
     return res
