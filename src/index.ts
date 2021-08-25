@@ -69,10 +69,6 @@ app.get('/v2', async (req, res) => {
         url
       );
 
-    console.log('hi');
-
-    console.log(isUrlValid);
-
     if (!url || !isUrlValid) {
       return res
         .set('Access-Control-Allow-Origin', '*')
