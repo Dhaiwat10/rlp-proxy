@@ -4,6 +4,8 @@ This is the source code for the proxy used in <a href='https://github.com/dhaiwa
 
 Feel free to fork both the main package and this proxy and deploy your own copy of the project.
 
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
 ## Environment variables
 
 1. `SERVER_URL`: The URL where your server is runnning. For example, if you are running the server locally it will be `localhost:3000` and if your server is live at `abc.xyz`, the value for this variable will be `abc.xyz`. This variable is necessary to serve static files correctly.

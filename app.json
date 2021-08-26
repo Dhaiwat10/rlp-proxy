@@ -1,0 +1,6 @@
+{
+  "name": "react-link-preview proxy",
+  "description": "A copy of the public proxy used by @dhaiwat10/react-link-preview.",
+  "repository": "https://github.com/dhaiwat10/rlp-proxy",
+  "keywords": ["react", "link", "preview"]
+}
