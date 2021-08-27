@@ -61,8 +61,16 @@ app.get('/', async (req, res) => {
 app.get('/v2', async (req, res) => {
   try {
     let url = req.query.url as unknown as string;
+
+    if (!url) {
+      return res
+        .set('Access-Control-Allow-Origin', '*')
+        .status(400)
+        .json({ error: 'Invalid URL' });
+    }
+
     url = url.toLowerCase();
-    url = (url.indexOf('://') === -1) ? 'http://' + url : url;
+    url = url.indexOf('://') === -1 ? 'http://' + url : url;
 
     const isUrlValid =
       /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi.test(
