@@ -69,7 +69,6 @@ app.get('/v2', async (req, res) => {
         .json({ error: 'Invalid URL' });
     }
 
-    url = url.toLowerCase();
     url = url.indexOf('://') === -1 ? 'http://' + url : url;
 
     const isUrlValid =
@@ -91,7 +90,7 @@ app.get('/v2', async (req, res) => {
 
       // optional - you'll need a supabase key if you want caching. highly recommended.
       const cached = await checkForCache(url);
-
+      
       if (cached) {
         return res
           .set('Access-Control-Allow-Origin', '*')
