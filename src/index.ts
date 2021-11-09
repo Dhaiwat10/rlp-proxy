@@ -7,7 +7,6 @@ import { APIOutput } from './types';
 const app = express();
 
 const port = Number(process.env.PORT || 8080);
-const SERVER_URL = process.env.SERVER_URL;
 
 if (process.env.REDISTOGO_URL) {
   var rtg = require('url').parse(process.env.REDISTOGO_URL);
@@ -108,7 +107,7 @@ app.get('/v2', async (req, res) => {
         ? og.image
         : images.length > 0
         ? images[0].url
-        : `${SERVER_URL}/img-placeholder.jpg`;
+        : null;
       const description = og.description
         ? og.description
         : meta.description
