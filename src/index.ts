@@ -40,7 +40,7 @@ app.get('/', async (req, res) => {
 app.get('/v2', async (req, res) => {
   try {
     let url = req.query.url as unknown as string;
-    url = url.toLowerCase();
+    //url = url.toLowerCase();
     url = url.indexOf('://') === -1 ? 'http://' + url : url;
 
     const isUrlValid =
