@@ -24,7 +24,7 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-limiter": "^1.6.1",
-    "html-metadata-parser": "^2.0.2",
+    "html-metadata-parser": "2.0.2",
     "redis": "^3.1.2"
   }
 }
