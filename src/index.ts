@@ -89,7 +89,7 @@ app.get('/v2', async (req, res) => {
 
       // optional - you'll need a supabase key if you want caching. highly recommended.
       const cached = await checkForCache(url);
-      
+
       if (cached) {
         return res
           .set('Access-Control-Allow-Origin', '*')
@@ -106,7 +106,7 @@ app.get('/v2', async (req, res) => {
       let image = og.image
         ? og.image
         : images.length > 0
-        ? images[0].url
+        ? images[0].src
         : null;
       const description = og.description
         ? og.description
