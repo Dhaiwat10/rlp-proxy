@@ -2,6 +2,7 @@ require('dotenv').config();
 import express, { Response } from 'express';
 import { getMetadata } from './lib';
 import { checkForCache, createCache } from './lib/cache';
+import { errorResponse, successResponse } from './lib/response';
 import { APIOutput } from './types';
 
 const app = express();
@@ -30,16 +31,24 @@ limiter({
 
 const sendResponse = (res: Response, output: APIOutput | null) => {
   if (!output) {
+    const data:APIOutput = {
+      title : null,
+      description : null,
+      image : null,
+      sitename : null,
+      hostname : null,
+    };
+
     return res
       .set('Access-Control-Allow-Origin', '*')
-      .status(404)
-      .json({ metadata: null });
+      .status(200)
+      .json(errorResponse(data,404,"Not found"));
   }
 
   return res
     .set('Access-Control-Allow-Origin', '*')
     .status(200)
-    .json({ metadata: output });
+    .json(successResponse(output));
 };
 
 app.listen(port, () => {
@@ -58,6 +67,7 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/v2', async (req, res) => {
+  res.set('Cache-Control', 'public, max-age=2592000')
   try {
     let url = req.query.url as unknown as string;
 
@@ -86,15 +96,11 @@ app.get('/v2', async (req, res) => {
       const { hostname } = new URL(url);
 
       let output: APIOutput;
-
       // optional - you'll need a supabase key if you want caching. highly recommended.
       const cached = await checkForCache(url);
 
       if (cached) {
-        return res
-          .set('Access-Control-Allow-Origin', '*')
-          .status(200)
-          .json({ metadata: cached });
+        sendResponse(res, cached);
       }
 
       const metadata = await getMetadata(url);
@@ -120,7 +126,7 @@ app.get('/v2', async (req, res) => {
         title,
         description,
         image,
-        siteName,
+        sitename : siteName,
         hostname,
       };
 
@@ -132,16 +138,12 @@ app.get('/v2', async (req, res) => {
           title: output.title,
           description: output.description,
           image: output.image,
-          siteName: output.siteName,
+          sitename: output.sitename,
           hostname: output.hostname,
         });
       }
     }
   } catch (error) {
-    console.log(error);
-    return res.set('Access-Control-Allow-Origin', '*').status(500).json({
-      error:
-        'Internal server error. Please open a Github issue or contact me on Twitter @dhaiwat10 if the issue persists.',
-    });
+    return res.set('Access-Control-Allow-Origin', '*').status(500).json(errorResponse(null,500,"Error"));
   }
 });
